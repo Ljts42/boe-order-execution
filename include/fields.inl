@@ -1,5 +1,5 @@
 #if !defined(FIELD) || !defined(VAR_FIELD)
-#  error You need to define FIELD and VAR_FIELD macro
+#error You need to define FIELD and VAR_FIELD macro
 #else
 
 VAR_FIELD(account, 16)

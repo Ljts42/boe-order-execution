@@ -100,6 +100,9 @@ std::vector<unsigned char> request_optional_fields_for_message(ResponseType);
 
 /*
  * Order Execution
+ *  Symbol(2,1)
+ *  LastMkt(7,128)
+ *  FeeCode(8,1)
  */
 
 enum class LiquidityIndicator
@@ -125,6 +128,8 @@ ExecutionDetails decode_order_execution(const std::vector<unsigned char> & messa
 
 /*
  * Order Restatement
+ *  LeavesQty(5,2)
+ *  SecondaryOrderId(6,1)
  */
 enum class RestatementReason
 {
