@@ -63,7 +63,7 @@ inline std::string decode(const std::vector<unsigned char> & message, const size
     while (offset + size - cnt - 1 < message.size() && cnt < size && message[offset + size - cnt - 1] == '\0') {
         cnt++;
     }
-    std::string result(message.cbegin() + offset, message.cbegin() + offset + size - cnt);
+    std::string result(message.begin() + offset, message.begin() + offset + size - cnt);
     return result;
 }
 
@@ -79,12 +79,16 @@ inline int64_t decode(std::vector<unsigned char>::const_iterator start, const si
 
 inline std::string decode(int64_t value)
 {
-    const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     if (value == 0)
         return "0";
     std::vector<unsigned char> str;
     while (value > 0) {
-        str.push_back(digits[value % 36]);
+        if (value % 36 < 10) {
+            str.push_back('0' + value % 36);
+        }
+        else {
+            str.push_back('7' + (value % 36));
+        }
         value /= 36;
     }
     std::string result(str.rbegin(), str.rend());
