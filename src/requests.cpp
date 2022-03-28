@@ -166,14 +166,19 @@ RestatementDetails decode_order_restatement(const std::vector<unsigned char> & m
 
 std::vector<unsigned char> request_optional_fields_for_message(const ResponseType response_type)
 {
+    std::vector<unsigned char> result;
     switch (response_type) {
-
-#define FIELD(name, ...)     \
-    case ResponseType::name: \
-        return std::vector<unsigned char>{__VA_ARGS__};
-
-#include "optional_bitfields.inl"
-
-    default: return {};
+    case ResponseType::OrderExecution: {
+        result.resize(order_execution_bitfield_num(), 0);
+#define FIELD(_, n, m) result[n - 1] += m;
+#include "order_execution_opt_fields.inl"
+        return result;
+    }
+    case ResponseType::OrderRestatement: {
+        result.resize(order_restatement_bitfield_num(), 0);
+#define FIELD(_, n, m) result[n - 1] += m;
+#include "order_restatement_opt_fields.inl"
+        return result;
+    }
     }
 }

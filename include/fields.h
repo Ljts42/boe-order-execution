@@ -84,7 +84,7 @@ inline std::string decode_base36(const std::vector<unsigned char> & message, con
 
 inline double decode_price(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
 {
-    return static_cast<double>(decode(message.cbegin() + offset + size - 1, size)) / 10000;
+    return static_cast<double>(decode(message.cbegin() + offset + size - 1, size)) / 1e4;
 }
 
 inline double decode_double(const std::vector<unsigned char> & message, const size_t offset, const size_t size)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -59,11 +60,8 @@ inline unsigned char * encode(unsigned char * start, const std::string & str, co
 
 inline std::string decode(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
 {
-    size_t cnt = 0;
-    while (offset + size - cnt - 1 < message.size() && cnt < size && message[offset + size - cnt - 1] == '\0') {
-        cnt++;
-    }
-    std::string result(message.begin() + offset, message.begin() + offset + size - cnt);
+    auto last = std::find(message.begin() + offset, message.begin() + offset + size, '\0');
+    std::string result(message.begin() + offset, last);
     return result;
 }
 
