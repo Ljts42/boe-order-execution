@@ -2,10 +2,7 @@
 
 #include "fields.h"
 
-#include <algorithm>
 #include <array>
-#include <string>
-#include <vector>
 
 /*
  * New Order
@@ -100,7 +97,18 @@ std::vector<unsigned char> request_optional_fields_for_message(ResponseType);
 
 /*
  * Order Execution
+ *  Symbol(2,1)
+ *  LastMkt(7,128)
+ *  FeeCode(8,1)
  */
+
+constexpr size_t order_execution_bitfield_num()
+{
+    return std::max({0
+#define FIELD(_, n, __) , n
+#include "order_execution_opt_fields.inl"
+    });
+}
 
 enum class LiquidityIndicator
 {
@@ -125,7 +133,18 @@ ExecutionDetails decode_order_execution(const std::vector<unsigned char> & messa
 
 /*
  * Order Restatement
+ *  LeavesQty(5,2)
+ *  SecondaryOrderId(6,1)
  */
+
+constexpr size_t order_restatement_bitfield_num()
+{
+    return std::max({0
+#define FIELD(_, n, __) , n
+#include "order_restatement_opt_fields.inl"
+    });
+}
+
 enum class RestatementReason
 {
     Reroute,

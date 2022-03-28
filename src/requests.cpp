@@ -109,27 +109,76 @@ std::array<unsigned char, calculate_size(RequestType::New)> create_new_order_req
     return msg;
 }
 
-ExecutionDetails decode_order_execution(const std::vector<unsigned char> & /*message*/)
+LiquidityIndicator convert_liquidity_indicator(unsigned char liquidity_indicator)
+{
+    if (liquidity_indicator == 'A')
+        return LiquidityIndicator::Added;
+    return LiquidityIndicator::Removed;
+}
+
+RestatementReason convert_restatement_reason(unsigned char restatement_reason)
+{
+    switch (restatement_reason) {
+    case 'R': return RestatementReason::Reroute;
+    case 'X': return RestatementReason::LockedInCross;
+    case 'W': return RestatementReason::Wash;
+    case 'L': return RestatementReason::Reload;
+    case 'Q': return RestatementReason::LiquidityUpdated;
+    default: return RestatementReason::Unknown;
+    }
+}
+
+ExecutionDetails decode_order_execution(const std::vector<unsigned char> & message)
 {
     ExecutionDetails exec_details;
-    // fill exec_details fields
-    //   exec_details.cl_ord_id.assign(char_ptr, length);
-    // or
-    //   exec_details.cl_ord_id = std::string{char_ptr, length};
-    // ...
-    //   exec_details.filled_volume = x;
-    // ...
+
+#define FIELD(name, _, __, ___) \
+    exec_details.name = decode_field_execution_##name(message);
+
+#define VAR_FIELD(name, _, __, ___) \
+    exec_details.name = decode_field_execution_##name(message);
+
+#define CHAR_FIELD(name, _) \
+    exec_details.name = convert_liquidity_indicator(decode_field_execution_##name(message));
+
+#include "order_execution.inl"
+
     return exec_details;
 }
 
-RestatementDetails decode_order_restatement(const std::vector<unsigned char> & /*message*/)
+RestatementDetails decode_order_restatement(const std::vector<unsigned char> & message)
 {
     RestatementDetails restatement_details;
-    // ...
+
+#define FIELD(name, _, __, ___) \
+    restatement_details.name = decode_field_restatement_##name(message);
+
+#define VAR_FIELD(name, _, __, ___) \
+    restatement_details.name = decode_field_restatement_##name(message);
+
+#define CHAR_FIELD(name, _) \
+    restatement_details.name = convert_restatement_reason(decode_field_restatement_##name(message));
+
+#include "order_restatement.inl"
+
     return restatement_details;
 }
 
-std::vector<unsigned char> request_optional_fields_for_message(const ResponseType)
+std::vector<unsigned char> request_optional_fields_for_message(const ResponseType response_type)
 {
-    return {};
+    std::vector<unsigned char> result;
+    switch (response_type) {
+    case ResponseType::OrderExecution: {
+        result.resize(order_execution_bitfield_num(), 0);
+#define FIELD(_, n, m) result[n - 1] += m;
+#include "order_execution_opt_fields.inl"
+        return result;
+    }
+    case ResponseType::OrderRestatement: {
+        result.resize(order_restatement_bitfield_num(), 0);
+#define FIELD(_, n, m) result[n - 1] += m;
+#include "order_restatement_opt_fields.inl"
+        return result;
+    }
+    }
 }

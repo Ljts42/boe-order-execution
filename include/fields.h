@@ -67,3 +67,93 @@ inline void set_opt_field_bit(unsigned char * bitfield_start, unsigned bitfield_
 {
     *(bitfield_start + bitfield_num - 1) |= bit;
 }
+
+/*
+ * decode
+ */
+
+inline std::string decode_text(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
+{
+    return decode(message, offset, size);
+}
+
+inline std::string decode_base36(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
+{
+    return decode(decode(message.cbegin() + offset + size - 1, size));
+}
+
+inline double decode_price(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
+{
+    return static_cast<double>(decode(message.cbegin() + offset + size - 1, size)) / 1e4;
+}
+
+inline double decode_double(const std::vector<unsigned char> & message, const size_t offset, const size_t size)
+{
+    return decode(message.cbegin() + offset + size - 1, size);
+}
+
+inline unsigned char decode_char(const std::vector<unsigned char> & message, const size_t offset)
+{
+    return message[offset];
+}
+
+/*
+ * Fields Execution
+ *  ClOrdID : Text(20)
+ *  ExecID : Binary(8)  Base36
+ *  LastShares : Binary(4)
+ *  LastPx : BinaryPrice(8)
+ *  LeavesQty : Binary(4)
+ *  BaseLiquidityIndicator : Alphanum(1)
+ *  Symbol : Alphanum(8)
+ *  LastMkt : Alphanum(4)
+ *  FeeCode : Alphanum(2)
+ */
+
+#define FIELD(name, protocol_type, offset, size)                                            \
+    inline double decode_field_execution_##name(const std::vector<unsigned char> & message) \
+    {                                                                                       \
+        return decode_##protocol_type(message, offset, size);                               \
+    }
+
+#define VAR_FIELD(name, protocol_type, offset, size)                                             \
+    inline std::string decode_field_execution_##name(const std::vector<unsigned char> & message) \
+    {                                                                                            \
+        return decode_##protocol_type(message, offset, size);                                    \
+    }
+
+#define CHAR_FIELD(name, offset)                                                                   \
+    inline unsigned char decode_field_execution_##name(const std::vector<unsigned char> & message) \
+    {                                                                                              \
+        return decode_char(message, offset);                                                       \
+    }
+
+#include "order_execution.inl"
+
+/*
+ * Fields Restatement
+ *  ClOrdID : Text(20)
+ *  RestatementReason : Alphanum(1)
+ *  LeavesQty : Binary(4)
+ *  SecondaryOrderID : Binary(8)  Base36
+ */
+
+#define FIELD(name, protocol_type, offset, size)                                              \
+    inline double decode_field_restatement_##name(const std::vector<unsigned char> & message) \
+    {                                                                                         \
+        return decode_##protocol_type(message, offset, size);                                 \
+    }
+
+#define VAR_FIELD(name, protocol_type, offset, size)                                               \
+    inline std::string decode_field_restatement_##name(const std::vector<unsigned char> & message) \
+    {                                                                                              \
+        return decode_##protocol_type(message, offset, size);                                      \
+    }
+
+#define CHAR_FIELD(name, offset)                                                                     \
+    inline unsigned char decode_field_restatement_##name(const std::vector<unsigned char> & message) \
+    {                                                                                                \
+        return decode_char(message, offset);                                                         \
+    }
+
+#include "order_restatement.inl"
